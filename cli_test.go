@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"sort"
@@ -1019,6 +1020,80 @@ func TestCLIAutocomplete_subcommandArgs(t *testing.T) {
 
 			if !reflect.DeepEqual(actual, tc.Expected) {
 				t.Fatalf("bad prediction: %#v", actual)
+			}
+		})
+	}
+}
+
+// This tests a bug found where subcommands with the same name as an
+// outer command get both their autocomplete functions called.
+func TestCLIAutocomplete_sameNameSubcommand(t *testing.T) {
+	autocomplete := func(result string) complete.Predictor {
+		return complete.PredictFunc(func(complete.Args) []string {
+			return []string{result}
+		})
+	}
+
+	cli := &CLI{
+		Commands: map[string]CommandFactory{
+			"status": func() (Command, error) {
+				return &MockCommandAutocomplete{
+					AutocompleteArgsValue: autocomplete("outer"),
+				}, nil
+			},
+
+			"job status": func() (Command, error) {
+				return &MockCommandAutocomplete{
+					AutocompleteArgsValue: autocomplete("inner"),
+				}, nil
+			},
+		},
+
+		Name:         "foo",
+		Autocomplete: true,
+	}
+
+	cases := []struct {
+		Name     string
+		Input    string
+		Expected string
+	}{
+		{"outer", "foo status ", "outer\n"},
+		{"inner", "foo job status ", "inner\n"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.Name, func(t *testing.T) {
+			// Test the autocompletion
+			defer testAutocomplete(t, tc.Input)()
+
+			// Set the stdout to be a buffer we can check. The above defer will clean this.
+			r, w, err := os.Pipe()
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+			defer r.Close()
+			defer w.Close()
+			os.Stdout = w
+			os.Stderr = w
+
+			exitCode, err := cli.Run()
+			if err != nil {
+				t.Fatalf("err: %s", err)
+			}
+
+			if exitCode != 0 {
+				t.Fatalf("bad: %d", exitCode)
+			}
+
+			// Close the writer so that the reader becomes available
+			w.Close()
+
+			// Copy the output to compare
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			if buf.String() != tc.Expected {
+				t.Fatalf("bad: %q", buf.String())
 			}
 		})
 	}
