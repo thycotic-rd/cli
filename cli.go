@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"text/tabwriter"
 	"text/template"
 
 	"github.com/armon/go-radix"
@@ -485,7 +486,7 @@ func (c *CLI) initAutocompleteSub(prefix string) complete.Command {
 
 func (c *CLI) commandHelp(command Command) {
 	// Get the template to use
-	tpl := strings.TrimSpace(defaultHelpTemplate)
+	tpl := defaultHelpTemplate
 	if t, ok := command.(CommandHelpTemplate); ok {
 		tpl = t.HelpTemplate()
 	}
@@ -500,10 +501,26 @@ func (c *CLI) commandHelp(command Command) {
 			"Internal error! Failed to parse command help template: %s\n", err)))
 	}
 
+	flags := []FlagValue{}
+	flagsGlobal := []FlagValue{}
+	if tAutocomplete, ok := command.(CommandAutocomplete); ok {
+		for _, pw := range tAutocomplete.GetPredictorWrappers() {
+			if pw.Value.Global {
+				flagsGlobal = append(flagsGlobal, *pw.Value)
+			} else {
+				flags = append(flags, *pw.Value)
+			}
+		}
+	}
+
 	// Template data
 	data := map[string]interface{}{
-		"Name": c.Name,
-		"Help": command.Help(),
+		"Name":        c.Name,
+		"Synopsis":    command.Synopsis(),
+		"Cmd":         c.Subcommand(),
+		"Help":        command.Help(),
+		"Flags":       flags,
+		"FlagsGlobal": flagsGlobal,
 	}
 
 	// Build subcommand list if we have it
@@ -559,7 +576,11 @@ func (c *CLI) commandHelp(command Command) {
 	data["Subcommands"] = subcommandsTpl
 
 	// Write
-	err = t.Execute(c.HelpWriter, data)
+	w := tabwriter.NewWriter(os.Stdout, 8, 8, 8, ' ', 0)
+	if err = t.Execute(w, data); err == nil {
+		err = w.Flush()
+	}
+	// err = t.Execute(c.HelpWriter, data)
 	if err == nil {
 		return
 	}
@@ -711,10 +732,20 @@ const defaultAutocompleteInstall = "autocomplete-install"
 const defaultAutocompleteUninstall = "autocomplete-uninstall"
 
 const defaultHelpTemplate = `
-{{.Help}}{{if gt (len .Subcommands) 0}}
+Cmd: {{.Cmd}}	{{.Synopsis}}
+   {{.Help}}{{if gt (len .Flags) 0}}
 
+Flags:
+{{- range $value := .Flags }}
+   --{{ $value.Name }}{{if ne $value.Shorthand ""}}, -{{$value.Shorthand}}{{end}}	{{ $value.Usage }}{{ end }}
+{{- end }}
+{{if gt (len .FlagsGlobal) 0}}
+Global:
+{{- range $value := .FlagsGlobal }}
+   --{{ $value.Name }}{{if ne $value.Shorthand ""}}, -{{$value.Shorthand}}{{end}}	{{ $value.Usage }}{{ end }}
+{{- end }}
+{{if gt (len .Subcommands) 0}}
 Subcommands:
 {{- range $value := .Subcommands }}
-    {{ $value.NameAligned }}    {{ $value.Synopsis }}{{ end }}
-{{- end }}
-`
+   {{ $value.NameAligned }}	{{ $value.Synopsis }}{{ end }}
+{{- end }}`
