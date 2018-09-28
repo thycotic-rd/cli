@@ -10,7 +10,7 @@ const (
 	RunResultHelp = -18511
 )
 
-// A command is a runnable sub-command of a CLI.
+// A Command is a runnable sub-command of a CLI.
 type Command interface {
 	// Help should return long-form help text that includes the command-line
 	// usage, a brief few sentences explaining the function of the command,
@@ -44,6 +44,10 @@ type CommandAutocomplete interface {
 	// options for this command. The map key for the Flags map should be the
 	// complete flag such as "-foo" or "--foo".
 	AutocompleteFlags() complete.Flags
+
+	// GetPredictorWrappers returns a mapping of supported flags
+	// and PredictionWrappers to be used for help function
+	GetPredictorWrappers() PredictorWrappers
 }
 
 // CommandHelpTemplate is an extension of Command that also has a function
