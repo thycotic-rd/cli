@@ -512,6 +512,12 @@ func (c *CLI) commandHelp(command Command) {
 			}
 		}
 	}
+	sort.Slice(flagsGlobal, func(i, j int) bool {
+		return flagsGlobal[i].Name < flagsGlobal[j].Name
+	})
+	sort.Slice(flags, func(i, j int) bool {
+		return flags[i].Name < flags[j].Name
+	})
 
 	// Template data
 	data := map[string]interface{}{
@@ -732,9 +738,9 @@ const defaultAutocompleteInstall = "autocomplete-install"
 const defaultAutocompleteUninstall = "autocomplete-uninstall"
 
 const defaultHelpTemplate = `
-Cmd: {{.Cmd}}	{{.Synopsis}}
-   {{.Help}}{{if gt (len .Flags) 0}}
-
+Cmd: {{.Cmd}}	{{.Synopsis}}{{if ne .Help ""}}
+   {{.Help}}{{ end}}
+{{if gt (len .Flags) 0}}
 Flags:
 {{- range $value := .Flags }}
    --{{ $value.Name }}{{if ne $value.Shorthand ""}}, -{{$value.Shorthand}}{{end}}	{{ $value.Usage }}{{ end }}
@@ -748,4 +754,6 @@ Global:
 Subcommands:
 {{- range $value := .Subcommands }}
    {{ $value.NameAligned }}	{{ $value.Synopsis }}{{ end }}
-{{- end }}`
+{{- end }}
+
+`
