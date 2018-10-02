@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"io/ioutil"
+	"strings"
 
 	"github.com/posener/complete"
 )
@@ -32,6 +34,18 @@ func (f FlagValue) IsBool() bool {
 }
 
 func (f *FlagValue) Set(v string) error {
+	if f.FlagType == "" || f.FlagType == "string" {
+		if v != "" && len(v) > 1 && strings.HasPrefix(v, "@") {
+			f.FlagType = "file"
+			fname := v[1:]
+			if b, err := ioutil.ReadFile(fname); err != nil {
+				return err
+			} else {
+				f.Val = string(b)
+				return nil
+			}
+		}
+	}
 	f.Val = v
 	return nil
 }

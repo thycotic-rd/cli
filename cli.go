@@ -739,7 +739,8 @@ const defaultAutocompleteUninstall = "autocomplete-uninstall"
 
 const defaultHelpTemplate = `
 Cmd: {{.Cmd}}	{{.Synopsis}}{{if ne .Help ""}}
-   {{.Help}}{{ end}}
+
+{{.Help}}{{ end}}
 {{if gt (len .Flags) 0}}
 Flags:
 {{- range $value := .Flags }}
