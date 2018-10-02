@@ -744,12 +744,12 @@ Cmd: {{.Cmd}}	{{.Synopsis}}{{if ne .Help ""}}
 {{if gt (len .Flags) 0}}
 Flags:
 {{- range $value := .Flags }}
-   --{{ $value.Name }}{{if ne $value.Shorthand ""}}, -{{$value.Shorthand}}{{end}}	{{ $value.Usage }}{{ end }}
+   --{{ $value.FriendlyName }}{{if ne $value.Shorthand ""}}, -{{$value.Shorthand}}{{end}}	{{ $value.Usage }}{{ end }}
 {{- end }}
 {{if gt (len .FlagsGlobal) 0}}
 Global:
 {{- range $value := .FlagsGlobal }}
-   --{{ $value.Name }}{{if ne $value.Shorthand ""}}, -{{$value.Shorthand}}{{end}}	{{ $value.Usage }}{{ end }}
+   --{{ $value.FriendlyName }}{{if ne $value.Shorthand ""}}, -{{$value.Shorthand}}{{end}}	{{ $value.Usage }}{{ end }}
 {{- end }}
 {{if gt (len .Subcommands) 0}}
 Subcommands:

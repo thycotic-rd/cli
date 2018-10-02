@@ -23,6 +23,7 @@ type FlagValue struct {
 	Val          string
 	FlagType     string
 	Name         string
+	FriendlyName string
 	DefaultValue string
 	Shorthand    string
 	Usage        string
