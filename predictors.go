@@ -11,7 +11,7 @@ import (
 // PredictorWrapper merges a flag with its predictor
 type PredictorWrapper struct {
 	complete.Predictor
-	Value          *FlagValue
+	Flag           *FlagWrapper
 	PredictNothing bool
 }
 
@@ -23,11 +23,19 @@ type FlagValue struct {
 	Val          string
 	FlagType     string
 	Name         string
-	FriendlyName string
 	DefaultValue string
+	Shorthand    string
+}
+
+type FlagWrapper struct {
+	Val          *FlagValue
+	FlagType     string
+	Name         string
+	FriendlyName string
 	Shorthand    string
 	Usage        string
 	Global       bool
+	Hidden       bool
 }
 
 func (f FlagValue) IsBool() bool {

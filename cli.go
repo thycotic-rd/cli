@@ -501,14 +501,17 @@ func (c *CLI) commandHelp(command Command) {
 			"Internal error! Failed to parse command help template: %s\n", err)))
 	}
 
-	flags := []FlagValue{}
-	flagsGlobal := []FlagValue{}
+	flags := []*FlagWrapper{}
+	flagsGlobal := []*FlagWrapper{}
 	if tAutocomplete, ok := command.(CommandAutocomplete); ok {
 		for _, pw := range tAutocomplete.GetPredictorWrappers() {
-			if pw.Value.Global {
-				flagsGlobal = append(flagsGlobal, *pw.Value)
+			if pw.Flag.Hidden {
+				continue
+			}
+			if pw.Flag.Global {
+				flagsGlobal = append(flagsGlobal, pw.Flag)
 			} else {
-				flags = append(flags, *pw.Value)
+				flags = append(flags, pw.Flag)
 			}
 		}
 	}
