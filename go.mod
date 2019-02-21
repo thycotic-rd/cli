@@ -1,4 +1,4 @@
-module github.com/mitchellh/cli
+module github.com/thycotic-rd/cli
 
 require (
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310
