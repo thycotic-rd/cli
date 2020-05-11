@@ -1,4 +1,4 @@
-module github.com/thycotic-rd/cli
+module github.com/mitchellh/cli
 
 require (
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310
@@ -10,3 +10,5 @@ require (
 	github.com/posener/complete v1.1.1
 	golang.org/x/sys v0.0.0-20180823144017-11551d06cbcc // indirect
 )
+
+go 1.13
