@@ -1,4 +1,4 @@
-module github.com/thycotic-rd/cli
+module github.com/mitchellh/cli
 
 go 1.11
 
